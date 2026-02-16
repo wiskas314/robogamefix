@@ -5,6 +5,8 @@ import log.Logger;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * Что требуется сделать:
@@ -36,7 +38,20 @@ public class MainApplicationFrame extends JFrame
         addWindow(gameWindow);
 
         setJMenuBar(generateMenuBar());
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e){
+                String[] options = {"Да","Нет"};
+                int confirm = JOptionPane.showOptionDialog(MainApplicationFrame.this,
+                        "Действительно выйти?", "Подтверждение выхода",
+                        JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,
+                        null,options,options[1]);
+                if(confirm==0){
+                    MainApplicationFrame.this.dispose();
+                }
+            }
+        });
     }
     
     protected LogWindow createLogWindow()
@@ -59,12 +74,21 @@ public class MainApplicationFrame extends JFrame
     private JMenuBar generateMenuBar()
     {
         JMenuBar menuBar = new JMenuBar();
-        
+        menuBar.add(createLookAndFeelMenu());
+        menuBar.add(createTestMenu());
+        menuBar.add(createExitMenu());
+        return menuBar;
+    }
+
+    /**
+     * Создание меню отвечающие за схему
+     */
+    private JMenu createLookAndFeelMenu(){
         JMenu lookAndFeelMenu = new JMenu("Режим отображения");
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
                 "Управление режимом отображения приложения");
-        
+
         JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
         systemLookAndFeel.addActionListener((event) -> {
             setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -78,23 +102,43 @@ public class MainApplicationFrame extends JFrame
             this.invalidate();
         });
         lookAndFeelMenu.add(crossplatformLookAndFeel);
+        return lookAndFeelMenu;
+    }
 
+    /**
+     * Создает меню отвечающие за тесты и логи
+     */
+    private JMenu createTestMenu(){
         JMenu testMenu = new JMenu("Тесты");
         testMenu.setMnemonic(KeyEvent.VK_T);
         testMenu.getAccessibleContext().setAccessibleDescription(
                 "Тестовые команды");
-        
+
         JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
         addLogMessageItem.addActionListener((event) -> {
             Logger.debug("Новая строка");
         });
         testMenu.add(addLogMessageItem);
-
-        menuBar.add(lookAndFeelMenu);
-        menuBar.add(testMenu);
-        return menuBar;
+        return testMenu;
     }
-    
+
+    /**
+     * Создает меню отвечающее за выход из игры
+     */
+    private JMenu createExitMenu(){
+        JMenu fileMenu = new JMenu("Выход");
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+
+        JMenuItem exitItem = new JMenuItem("Выход",KeyEvent.VK_X);
+        exitItem.setMnemonic(KeyEvent.VK_X);
+        exitItem.addActionListener((event)->{
+            Toolkit.getDefaultToolkit().getSystemEventQueue().
+                    postEvent(new WindowEvent(this,WindowEvent.WINDOW_CLOSING));
+        });
+        fileMenu.add(exitItem);
+        return fileMenu;
+    }
+
     private void setLookAndFeel(String className)
     {
         try
