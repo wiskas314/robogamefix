@@ -8,12 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-/**
- * Что требуется сделать:
- * 1. Метод создания меню перегружен функционалом и трудно читается. 
- * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
- *
- */
+
 public class MainApplicationFrame extends JFrame
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
@@ -48,11 +43,18 @@ public class MainApplicationFrame extends JFrame
                         JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,
                         null,options,options[1]);
                 if(confirm==0){
+                    for(JInternalFrame frame : desktopPane.getAllFrames()){
+                        if(frame!=null)
+                            frame.dispose();
+                    }
+                    MainApplicationFrame.this.setVisible(false);
                     MainApplicationFrame.this.dispose();
+                    System.exit(0);
                 }
             }
         });
     }
+
     
     protected LogWindow createLogWindow()
     {
@@ -71,6 +73,9 @@ public class MainApplicationFrame extends JFrame
         frame.setVisible(true);
     }
 
+    /**
+     * Создаёт основную панель меню приложения
+     */
     private JMenuBar generateMenuBar()
     {
         JMenuBar menuBar = new JMenuBar();
@@ -81,7 +86,7 @@ public class MainApplicationFrame extends JFrame
     }
 
     /**
-     * Создание меню отвечающие за схему
+     * Создание кнопки отвечающие за схему
      */
     private JMenu createLookAndFeelMenu(){
         JMenu lookAndFeelMenu = new JMenu("Режим отображения");
