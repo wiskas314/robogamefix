@@ -10,14 +10,8 @@ import java.util.TimerTask;
 
 public class GameVisualizer extends JPanel
 {
-    private final Timer timer = initTimer();
-    
-    private static Timer initTimer() 
-    {
-        Timer timer = new Timer("events generator", true);
-        return timer;
-    }
-    
+    private final Timer timer = new Timer("events generator", true);
+
     private volatile double robotPositionX = 100;
     private volatile double robotPositionY = 100; 
     private volatile double robotDirection = 0; 
@@ -63,7 +57,7 @@ public class GameVisualizer extends JPanel
         targetPositionX = p.x;
         targetPositionY = p.y;
     }
-    
+
     protected void onRedrawEvent()
     {
         EventQueue.invokeLater(this::repaint);
