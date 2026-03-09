@@ -1,5 +1,7 @@
 package gui;
 
+import gui.state.StateStorage;
+import gui.state.Stateful;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
@@ -7,7 +9,7 @@ import log.LogWindowSource;
 import javax.swing.*;
 import java.awt.*;
 
-public class LogWindow extends JInternalFrame implements LogChangeListener
+public class LogWindow extends JInternalFrame implements LogChangeListener, Stateful
 {
     private LogWindowSource logSource;
     private TextArea logContent;
@@ -42,5 +44,31 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
     public void onLogChanged()
     {
         EventQueue.invokeLater(this::updateLogContent);
+    }
+
+    @Override
+    public void saveState(StateStorage storage)
+    {
+        storage.put("x", getX());
+        storage.put("y", getY());
+        storage.put("width", getWidth());
+        storage.put("height", getHeight());
+        storage.put("maximized", isMaximum());
+        storage.put("iconified", isIcon());
+    }
+
+    @Override
+    public void restoreState(StateStorage storage)
+    {
+        int x = storage.getInt("x", 10);
+        int y = storage.getInt("y", 10);
+        int width = storage.getInt("width", 300);
+        int height = storage.getInt("height", 800);
+        setBounds(x, y, width, height);
+
+        if (storage.getBoolean("maximized", false))
+            try { setMaximum(true); } catch (Exception ignored) {}
+        else if (storage.getBoolean("iconified", false))
+            try { setIcon(true); } catch (Exception ignored) {}
     }
 }

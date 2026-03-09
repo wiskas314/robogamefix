@@ -1,5 +1,8 @@
 package gui;
 
+import gui.state.ApplicationStateManager;
+import gui.state.StateStorage;
+import gui.state.Stateful;
 import log.Logger;
 
 import javax.swing.*;
@@ -9,22 +12,21 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 
-public class MainApplicationFrame extends JFrame
+public class MainApplicationFrame extends JFrame implements Stateful
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
-    
-    public MainApplicationFrame() {
-        //Make the big window be indented 50 pixels from each edge
-        //of the screen.
-        int inset = 50;        
+    private final ApplicationStateManager stateManager;
+    public MainApplicationFrame(ApplicationStateManager stateManager) {
+        this.stateManager = stateManager;
+        int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
             screenSize.width  - inset*2,
             screenSize.height - inset*2);
 
         setContentPane(desktopPane);
-        
-        
+
+
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
 
@@ -32,30 +34,21 @@ public class MainApplicationFrame extends JFrame
         gameWindow.setSize(400,  400);
         addWindow(gameWindow);
 
+        stateManager.register("main",this);
+        stateManager.register("log",logWindow);
+        stateManager.register("game",gameWindow);
+
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e){
-                String[] options = {"Да","Нет"};
-                int confirm = JOptionPane.showOptionDialog(MainApplicationFrame.this,
-                        "Действительно выйти?", "Подтверждение выхода",
-                        JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,
-                        null,options,options[1]);
-                if(confirm==0){
-                    for(JInternalFrame frame : desktopPane.getAllFrames()){
-                        if(frame!=null)
-                            frame.dispose();
-                    }
-                    MainApplicationFrame.this.setVisible(false);
-                    MainApplicationFrame.this.dispose();
-                    System.exit(0);
-                }
+                confirmAndExit();
             }
         });
     }
 
-    
+
     protected LogWindow createLogWindow()
     {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
@@ -66,7 +59,7 @@ public class MainApplicationFrame extends JFrame
         Logger.debug("Протокол работает");
         return logWindow;
     }
-    
+
     protected void addWindow(JInternalFrame frame)
     {
         desktopPane.add(frame);
@@ -156,5 +149,50 @@ public class MainApplicationFrame extends JFrame
         {
             // just ignore
         }
+    }
+
+    private void confirmAndExit(){
+        String[] options = {"Да","Нет"};
+        int confirm = JOptionPane.showOptionDialog(MainApplicationFrame.this,
+                "Действительно выйти?", "Подтверждение выхода",
+                JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,
+                null,options,options[1]);
+        if(confirm==0){
+            stateManager.save();
+            for(JInternalFrame frame : desktopPane.getAllFrames()){
+                if(frame!=null)
+                    frame.dispose();
+            }
+            MainApplicationFrame.this.setVisible(false);
+            MainApplicationFrame.this.dispose();
+            System.exit(0);
+        }
+    }
+
+    @Override
+    public void saveState(StateStorage storage){
+        storage.put("x",getX());
+        storage.put("y",getY());
+        storage.put("width",getWidth());
+        storage.put("height",getHeight());
+        storage.put("extendedState", getExtendedState());
+    }
+
+    @Override
+    public void restoreState(StateStorage storage)
+    {
+        int x = storage.getInt("x", 50);
+        int y = storage.getInt("y", 50);
+        int w = storage.getInt("width", Toolkit.getDefaultToolkit().getScreenSize().width - 100);
+        int h = storage.getInt("height", Toolkit.getDefaultToolkit().getScreenSize().height - 100);
+        setBounds(x, y, w, h);
+
+        int state = storage.getInt("extendedState", Frame.MAXIMIZED_BOTH);
+        setExtendedState(state);
+    }
+
+    public void restoreAllStates()
+    {
+        stateManager.restore();
     }
 }

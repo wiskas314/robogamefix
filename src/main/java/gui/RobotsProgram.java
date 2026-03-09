@@ -1,5 +1,7 @@
 package gui;
 
+import gui.state.ApplicationStateManager;
+
 import java.awt.Frame;
 
 import javax.swing.SwingUtilities;
@@ -16,10 +18,9 @@ public class RobotsProgram
       } catch (Exception e) {
         e.printStackTrace();
       }
-      SwingUtilities.invokeLater(() -> {
-        MainApplicationFrame frame = new MainApplicationFrame();
-        frame.pack();
+      SwingUtilities.invokeLater(() -> {ApplicationStateManager stateManager = new ApplicationStateManager();
+        MainApplicationFrame frame = new MainApplicationFrame(stateManager);
+        frame.restoreAllStates();
         frame.setVisible(true);
-        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
       });
     }}
