@@ -10,11 +10,15 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.TimerTask;
+import java.util.Timer;
 
 
 public class MainApplicationFrame extends JFrame implements Stateful
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
+    RobotModel robotModel = new RobotModel();
+    private Timer timer;
     private final ApplicationStateManager stateManager;
     public MainApplicationFrame(ApplicationStateManager stateManager) {
         this.stateManager = stateManager;
@@ -26,17 +30,23 @@ public class MainApplicationFrame extends JFrame implements Stateful
 
         setContentPane(desktopPane);
 
-
+        GameVisualizer visualizer = new GameVisualizer(robotModel);
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
 
-        GameWindow gameWindow = new GameWindow();
+        GameWindow gameWindow = new GameWindow(visualizer);
         gameWindow.setSize(400,  400);
         addWindow(gameWindow);
+
+        RobotCoordinatesWindow coordsWindow = new RobotCoordinatesWindow(robotModel);
+        addWindow(coordsWindow);
 
         stateManager.register("main",this);
         stateManager.register("log",logWindow);
         stateManager.register("game",gameWindow);
+        stateManager.register("coords", coordsWindow);
+
+        startModelUpdateTimer();
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -158,15 +168,36 @@ public class MainApplicationFrame extends JFrame implements Stateful
                 JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,
                 null,options,options[1]);
         if(confirm==0){
+            timer.cancel();
             stateManager.save();
             for(JInternalFrame frame : desktopPane.getAllFrames()){
-                if(frame!=null)
-                    frame.dispose();
+                if(frame!=null) frame.dispose();
             }
             MainApplicationFrame.this.setVisible(false);
             MainApplicationFrame.this.dispose();
             System.exit(0);
         }
+    }
+
+    private void startModelUpdateTimer()
+    {
+        timer = new Timer("model-update", true);
+
+        timer.schedule(new TimerTask()
+        {
+            private long lastTime = System.currentTimeMillis();
+
+            @Override
+            public void run()
+            {
+                long now = System.currentTimeMillis();
+                long dtMillis = now - lastTime;
+
+                robotModel.onModelUpdateEvent(dtMillis);
+
+                lastTime = now;
+            }
+        }, 0, 10);
     }
 
     @Override

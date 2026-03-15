@@ -8,14 +8,11 @@ import java.awt.*;
 
 public class GameWindow extends JInternalFrame implements Stateful
 {
-    private final GameVisualizer gameVisualizer;
-
-    public GameWindow() 
+    public GameWindow(JComponent component)
     {
         super("Игровое поле", true, true, true, true);
-        gameVisualizer = new GameVisualizer();
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(gameVisualizer, BorderLayout.CENTER);
+        panel.add(component, BorderLayout.CENTER);
         getContentPane().add(panel);
         pack();
     }
