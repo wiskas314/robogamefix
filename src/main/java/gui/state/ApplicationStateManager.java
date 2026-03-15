@@ -1,7 +1,6 @@
 package gui.state;
 
 import log.Logger;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,10 +13,16 @@ public class ApplicationStateManager {
     private final File configFile;
     private final List<RegisteredComponent> components =new ArrayList<>();
 
+    /**
+     * обертка для хранения пары префикс компонент
+     */
     private class RegisteredComponent{
         final String prefix;
         final Stateful component;
 
+        /**
+         * создает новую запись компонента
+         */
         RegisteredComponent(String prefix, Stateful component){
             this.prefix=prefix;
             this.component=component;

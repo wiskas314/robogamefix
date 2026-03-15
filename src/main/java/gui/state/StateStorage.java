@@ -1,15 +1,16 @@
 package gui.state;
 
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Абстракция данных для хранения и восстановления состояния окон приложения.
  */
-public class StateStorage {
+public class StateStorage extends AbstractMap<String,String> {
     /**
      * Общий словарь всех состояний приложения
      */
-    private final Map<String, String> map;
+    private final Map<String, String> targetMap;
     /**
      * Префикс ключей для текущего компонента
      */
@@ -18,39 +19,25 @@ public class StateStorage {
     /**
      * Создаёт отфильтрованное хранилище с указанным префиксом.
      */
-    public StateStorage(Map<String, String> map, String prefix) {
-        this.map = map;
+    public StateStorage(Map<String, String> targetMap, String prefix) {
+        this.targetMap = targetMap;
         this.prefix = (prefix == null || prefix.isEmpty()) ? "" :
                 prefix.endsWith(".") ? prefix : prefix + ".";
     }
 
     /**
-     * Сохраняет строковое значение в хранилище.
+     * Сохраняет значение в хранилище.
      */
-    public void put(String key, String value) {
+    public void put(String key, Object value) {
         if (value != null)
-            map.put(prefix + key, value);
-    }
-
-    /**
-     * Сохраняет целочисленное значение.
-     */
-    public void put(String key, int value) {
-        put(key, Integer.toString(value));
-    }
-
-    /**
-     * Сохраняет булево значение.
-     */
-    public void put(String key, boolean value) {
-        put(key, Boolean.toString(value));
+            targetMap.put(prefix + key, value.toString());
     }
 
     /**
      * Возвращает строковое значение по ключу.
      */
     public String get(String key) {
-        return map.get(prefix + key);
+        return targetMap.get(prefix + key);
     }
 
     /**
@@ -74,5 +61,31 @@ public class StateStorage {
         String val = get(key);
         if (val == null) return defaultValue;
         return Boolean.parseBoolean(val);
+    }
+    @Override
+    public Set<Entry<String, String>> entrySet()
+    {
+        return targetMap.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(prefix))
+                .map(e -> new AbstractMap.SimpleEntry<>(
+                        e.getKey().substring(prefix.length()),
+                        e.getValue()))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String put(String key, String value)
+    {
+        String old = get(key);
+        this.put(key, value);
+        return old;
+    }
+
+    @Override
+    public String get(Object key)
+    {
+        if (key instanceof String)
+            return get((String) key);
+        return null;
     }
 }
