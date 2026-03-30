@@ -102,7 +102,7 @@ public class ApplicationStateManager {
             String line;
             while ((line = reader.readLine()) !=null){
                 line=line.trim();
-                if (line.isEmpty() || line.startsWith("#")) continue;
+                if (line.isEmpty()) continue;
                 int eq = line.indexOf('=');
                 if (eq>0){
                     String key = line.substring(0,eq).trim();

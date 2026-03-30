@@ -18,10 +18,12 @@ public class MainApplicationFrame extends JFrame implements Stateful
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
     RobotModel robotModel = new RobotModel();
+    private RobotController robotController;
     private Timer timer;
     private final ApplicationStateManager stateManager;
     public MainApplicationFrame(ApplicationStateManager stateManager) {
         this.stateManager = stateManager;
+        robotController = new RobotController(robotModel);
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
@@ -179,6 +181,9 @@ public class MainApplicationFrame extends JFrame implements Stateful
         }
     }
 
+    /**
+     * Запускает таймер для периодического обновления модели робота
+     */
     private void startModelUpdateTimer()
     {
         timer = new Timer("model-update", true);
@@ -193,7 +198,7 @@ public class MainApplicationFrame extends JFrame implements Stateful
                 long now = System.currentTimeMillis();
                 long dtMillis = now - lastTime;
 
-                robotModel.onModelUpdateEvent(dtMillis);
+                robotController.update(dtMillis);
 
                 lastTime = now;
             }

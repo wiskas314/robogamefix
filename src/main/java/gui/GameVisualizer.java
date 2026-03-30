@@ -11,7 +11,9 @@ public class GameVisualizer extends JPanel {
 
     private final RobotModel model;
 
-
+    /**
+     * Создаёт новый визуализатор игрового поля
+     */
     public GameVisualizer(RobotModel model) {
         this.model = model;
         setDoubleBuffered(true);
@@ -20,14 +22,16 @@ public class GameVisualizer extends JPanel {
 
         addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mousePressed(MouseEvent e) {
                 model.setTargetPosition(e.getPoint().x, e.getPoint().y);
                 repaint();
             }
         });
     }
 
-
+    /**
+     * Округляет вещественное значение до ближайшего целого числа
+     */
     private static int round(double value) {
         return (int) (value + 0.5);
     }
@@ -41,14 +45,23 @@ public class GameVisualizer extends JPanel {
         drawRobot(g2d, round(model.getX()), round(model.getY()), model.getDirection());
     }
 
+    /**
+     * Рисует закрашенный эллипс
+     */
     private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2) {
         g.fillOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
     }
 
+    /**
+     * Рисует контур эллипса
+     */
     private static void drawOval(Graphics g, int centerX, int centerY, int diam1, int diam2) {
         g.drawOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
     }
 
+    /**
+     * Отрисовывает робота на панели
+     */
     private void drawRobot(Graphics2D g, int x, int y, double direction) {
         int robotCenterX = x;
         int robotCenterY = y;
@@ -65,6 +78,9 @@ public class GameVisualizer extends JPanel {
         drawOval(g, robotCenterX + 10, robotCenterY, 5, 5);
     }
 
+    /**
+     * Отрисовывает целевую точку на панели
+     */
     private void drawTarget(Graphics2D g, int x, int y) {
         AffineTransform t = AffineTransform.getRotateInstance(0, 0, 0);
         g.setTransform(t);
