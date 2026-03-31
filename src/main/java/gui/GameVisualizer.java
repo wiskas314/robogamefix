@@ -20,13 +20,6 @@ public class GameVisualizer extends JPanel {
 
         model.addPropertyChangeListener(evt -> EventQueue.invokeLater(this::repaint));
 
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                model.setTargetPosition(e.getPoint().x, e.getPoint().y);
-                repaint();
-            }
-        });
     }
 
     /**

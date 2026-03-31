@@ -18,12 +18,11 @@ public class MainApplicationFrame extends JFrame implements Stateful
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
     RobotModel robotModel = new RobotModel();
-    private RobotController robotController;
+    private GameController gameController;
     private Timer timer;
     private final ApplicationStateManager stateManager;
     public MainApplicationFrame(ApplicationStateManager stateManager) {
         this.stateManager = stateManager;
-        robotController = new RobotController(robotModel);
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
@@ -43,12 +42,13 @@ public class MainApplicationFrame extends JFrame implements Stateful
         RobotCoordinatesWindow coordsWindow = new RobotCoordinatesWindow(robotModel);
         addWindow(coordsWindow);
 
+        gameController = new GameController(robotModel, visualizer);
+        timer = gameController.getUpdateTimer();
+
         stateManager.register("main",this);
         stateManager.register("log",logWindow);
         stateManager.register("game",gameWindow);
         stateManager.register("coords", coordsWindow);
-
-        startModelUpdateTimer();
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -179,30 +179,6 @@ public class MainApplicationFrame extends JFrame implements Stateful
             MainApplicationFrame.this.dispose();
             System.exit(0);
         }
-    }
-
-    /**
-     * Запускает таймер для периодического обновления модели робота
-     */
-    private void startModelUpdateTimer()
-    {
-        timer = new Timer("model-update", true);
-
-        timer.schedule(new TimerTask()
-        {
-            private long lastTime = System.currentTimeMillis();
-
-            @Override
-            public void run()
-            {
-                long now = System.currentTimeMillis();
-                long dtMillis = now - lastTime;
-
-                robotController.update(dtMillis);
-
-                lastTime = now;
-            }
-        }, 0, 10);
     }
 
     @Override
