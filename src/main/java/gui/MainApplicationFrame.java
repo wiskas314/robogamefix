@@ -10,7 +10,6 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.TimerTask;
 import java.util.Timer;
 
 
@@ -128,6 +127,7 @@ public class MainApplicationFrame extends JFrame implements Stateful
         addLogMessageItem.addActionListener((event) -> {
             Logger.debug("Новая строка");
         });
+
         testMenu.add(addLogMessageItem);
         return testMenu;
     }

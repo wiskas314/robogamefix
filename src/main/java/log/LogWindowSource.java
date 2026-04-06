@@ -1,89 +1,108 @@
 package log;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 
-/**
- * Что починить:
- * 1. Этот класс порождает утечку ресурсов (связанные слушатели оказываются
- * удерживаемыми в памяти)
- * 2. Этот класс хранит активные сообщения лога, но в такой реализации он 
- * их лишь накапливает. Надо же, чтобы количество сообщений в логе было ограничено 
- * величиной m_iQueueLength (т.е. реально нужна очередь сообщений 
- * ограниченного размера) 
- */
-public class LogWindowSource
-{
+public class LogWindowSource {
     private int queueLength;
-    
-    private ArrayList<LogEntry> messages;
-    private final ArrayList<LogChangeListener> listeners;
-    private volatile LogChangeListener[] activeListeners;
-    
-    public LogWindowSource(int iQueueLength) 
-    {
+
+    private CircularBuffer messages;
+    private final Set<LogChangeListener> listeners = Collections.newSetFromMap(new WeakHashMap<>());
+
+
+    public LogWindowSource(int iQueueLength) {
         queueLength = iQueueLength;
-        messages = new ArrayList<>(iQueueLength);
-        listeners = new ArrayList<>();
+        messages = new CircularBuffer(iQueueLength);
     }
-    
-    public void registerListener(LogChangeListener listener)
-    {
-        synchronized(listeners)
-        {
+
+    public void registerListener(LogChangeListener listener) {
+        synchronized (listeners) {
             listeners.add(listener);
-            activeListeners = null;
         }
     }
-    
-    public void unregisterListener(LogChangeListener listener)
-    {
-        synchronized(listeners)
-        {
+
+    public void unregisterListener(LogChangeListener listener) {
+        synchronized (listeners) {
             listeners.remove(listener);
-            activeListeners = null;
         }
     }
-    
-    public void append(LogLevel logLevel, String strMessage)
-    {
+
+    public void append(LogLevel logLevel, String strMessage) {
         LogEntry entry = new LogEntry(logLevel, strMessage);
         messages.add(entry);
-        LogChangeListener [] activeListeners = this.activeListeners;
-        if (activeListeners == null)
-        {
-            synchronized (listeners)
-            {
-                if (this.activeListeners == null)
-                {
-                    activeListeners = listeners.toArray(new LogChangeListener [0]);
-                    this.activeListeners = activeListeners;
-                }
-            }
+        List<LogChangeListener> activeListeners;
+        synchronized (listeners) {
+            activeListeners = new ArrayList<>(listeners);
         }
-        for (LogChangeListener listener : activeListeners)
-        {
+        for (LogChangeListener listener : activeListeners) {
             listener.onLogChanged();
         }
     }
-    
-    public int size()
-    {
+
+    public int size() {
         return messages.size();
     }
 
-    public Iterable<LogEntry> range(int startFrom, int count)
-    {
-        if (startFrom < 0 || startFrom >= messages.size())
-        {
-            return Collections.emptyList();
-        }
-        int indexTo = Math.min(startFrom + count, messages.size());
-        return messages.subList(startFrom, indexTo);
+    public Iterable<LogEntry> range(int startFrom, int count) {
+        return messages.getRange(startFrom, count);
     }
 
-    public Iterable<LogEntry> all()
-    {
-        return messages;
+    public Iterable<LogEntry> all() {
+        return messages.getAll();
+    }
+
+    /**
+     * Потокобезопасный кольцевой буфер для хранения записей лога
+     */
+    private static class CircularBuffer {
+        private final LogEntry[] buffer;
+        private int head = 0;
+        private int size = 0;
+
+        public CircularBuffer(int capacity) {
+            this.buffer = new LogEntry[capacity];
+        }
+
+        /**
+         * Добавляет новую запись в буфер
+         */
+        public synchronized void add(LogEntry element) {
+            buffer[head] = element;
+            head = (head + 1) % buffer.length;
+            if (size < buffer.length) {
+                size++;
+            }
+        }
+
+        /**
+         * Возвращает текущее количество записей в буфере
+         */
+        public synchronized int size() {
+            return size;
+        }
+
+        /**
+         * Возвращает диапазон записей из буфера, начиная с заданного логического индекса
+         */
+        public synchronized List<LogEntry> getRange(int start, int count) {
+            if (start < 0 || start >= size) return Collections.emptyList();
+
+            int actualCount = Math.min(count, size - start);
+            List<LogEntry> result = new ArrayList<>(actualCount);
+
+            int firstElemIndex = (head - size + buffer.length) % buffer.length;
+
+            for (int i = 0; i < actualCount; i++) {
+                int index = (firstElemIndex + start + i) % buffer.length;
+                result.add(buffer[index]);
+            }
+            return result;
+        }
+
+        /**
+         * Возвращает все записи, хранящиеся в буфере
+         */
+        public synchronized List<LogEntry> getAll() {
+            return getRange(0, size);
+        }
     }
 }

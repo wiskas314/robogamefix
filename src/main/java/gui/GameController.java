@@ -1,5 +1,7 @@
 package gui;
 
+import log.Logger;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Timer;
@@ -11,7 +13,7 @@ import java.util.TimerTask;
 public class GameController {
 
     private final RobotModel model;
-    private final RobotController robotController;
+    private final RobotUpdater robotUpdater;
     private final GameVisualizer visualizer;
     private Timer updateTimer;
 
@@ -21,7 +23,7 @@ public class GameController {
     public GameController(RobotModel model, GameVisualizer visualizer) {
         this.model = model;
         this.visualizer = visualizer;
-        this.robotController = new RobotController(model);
+        this.robotUpdater = new RobotUpdater(model);
 
         setupMouseInput();
         startUpdateTimer();
@@ -34,7 +36,8 @@ public class GameController {
         visualizer.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                model.setTargetPosition(e.getPoint().x, e.getPoint().y);
+                model.setTargetPosition(e.getX(), e.getY());
+                Logger.debug("Робот направлен в точку: x=" + e.getX() + ", y=" + e.getY());
             }
         });
     }
@@ -51,7 +54,7 @@ public class GameController {
             public void run() {
                 long now = System.currentTimeMillis();
                 long dt = now - lastTime;
-                robotController.update(dt);
+                robotUpdater.update(dt);
                 lastTime = now;
             }
         }, 0, 10);

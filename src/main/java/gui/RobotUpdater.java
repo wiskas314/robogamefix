@@ -3,7 +3,7 @@ package gui;
 /**
  * Контроллер движения робота отвечающий за вычисление новой позиции и направления
  */
-public class RobotController {
+public class RobotUpdater {
     private final RobotModel model;
     /**
      * Максимальная линейная скорость робота
@@ -18,7 +18,7 @@ public class RobotController {
      */
     private static final long MAX_DT_MILLIS = 50;
 
-    public RobotController(RobotModel model) {
+    public RobotUpdater(RobotModel model) {
         this.model = model;
     }
 
