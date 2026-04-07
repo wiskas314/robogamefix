@@ -20,12 +20,6 @@ public class LogWindowSource {
         }
     }
 
-    public void unregisterListener(LogChangeListener listener) {
-        synchronized (listeners) {
-            listeners.remove(listener);
-        }
-    }
-
     public void append(LogLevel logLevel, String strMessage) {
         LogEntry entry = new LogEntry(logLevel, strMessage);
         messages.add(entry);
@@ -55,7 +49,13 @@ public class LogWindowSource {
      */
     private static class CircularBuffer {
         private final LogEntry[] buffer;
+        /**
+         * Указатель на следующую позицию для записи
+         */
         private int head = 0;
+        /**
+         * Количество элементов
+         */
         private int size = 0;
 
         public CircularBuffer(int capacity) {
