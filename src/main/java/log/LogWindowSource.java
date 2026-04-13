@@ -1,6 +1,7 @@
 package log;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LogWindowSource {
     private int queueLength;
@@ -49,6 +50,7 @@ public class LogWindowSource {
      */
     private static class CircularBuffer {
         private final LogEntry[] buffer;
+        private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         /**
          * Указатель на следующую позицию для записи
          */
@@ -65,38 +67,54 @@ public class LogWindowSource {
         /**
          * Добавляет новую запись в буфер
          */
-        public synchronized void add(LogEntry element) {
-            buffer[head] = element;
-            head = (head + 1) % buffer.length;
-            if (size < buffer.length) {
-                size++;
+        public void add(LogEntry element) {
+            lock.writeLock().lock();
+            try {
+                buffer[head] = element;
+                head = (head + 1) % buffer.length;
+                if (size < buffer.length) {
+                    size++;
+                }
+            } finally {
+                lock.writeLock().unlock();
             }
         }
 
         /**
          * Возвращает текущее количество записей в буфере
          */
-        public synchronized int size() {
-            return size;
+        public int size() {
+            lock.readLock().lock();
+            try {
+                return size;
+            } finally {
+                lock.readLock().unlock();
+            }
         }
 
         /**
          * Возвращает диапазон записей из буфера, начиная с заданного логического индекса
          */
-        public synchronized List<LogEntry> getRange(int start, int count) {
-            if (start < 0 || start >= size) return Collections.emptyList();
+        public List<LogEntry> getRange(int start, int count) {
+            lock.readLock().lock();
+            try {
+                if (start < 0 || start >= size) return Collections.emptyList();
 
-            int actualCount = Math.min(count, size - start);
-            List<LogEntry> result = new ArrayList<>(actualCount);
+                int actualCount = Math.min(count, size - start);
+                List<LogEntry> result = new ArrayList<>(actualCount);
 
-            int firstElemIndex = (head - size + buffer.length) % buffer.length;
+                int firstElemIndex = (head - size + buffer.length) % buffer.length;
 
-            for (int i = 0; i < actualCount; i++) {
-                int index = (firstElemIndex + start + i) % buffer.length;
-                result.add(buffer[index]);
+                for (int i = 0; i < actualCount; i++) {
+                    int index = (firstElemIndex + start + i) % buffer.length;
+                    result.add(buffer[index]);
+                }
+                return result;
+            } finally {
+                lock.readLock().unlock();
             }
-            return result;
         }
+
 
         /**
          * Возвращает все записи, хранящиеся в буфере
