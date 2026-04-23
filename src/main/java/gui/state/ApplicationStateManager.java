@@ -46,6 +46,15 @@ public class ApplicationStateManager {
     }
 
     /**
+     * Получает сохранённый тег локали
+     */
+    public String getSavedLocaleTag() {
+        Map<String,String> stateMap = loadFromFile();
+        StateStorage storage = new StateStorage(stateMap, "locale");
+        return storage.get("tag");
+    }
+
+    /**
      *Регистрируем компоненты
      */
     public void register(String prefix, Stateful component){

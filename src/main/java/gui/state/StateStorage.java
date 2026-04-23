@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 /**
  * Абстракция данных для хранения и восстановления состояния окон приложения.
  */
-public class StateStorage extends AbstractMap<String,String> {
+public class StateStorage {
     /**
      * Общий словарь всех состояний приложения
      */
@@ -62,30 +62,5 @@ public class StateStorage extends AbstractMap<String,String> {
         if (val == null) return defaultValue;
         return Boolean.parseBoolean(val);
     }
-    @Override
-    public Set<Entry<String, String>> entrySet()
-    {
-        return targetMap.entrySet().stream()
-                .filter(e -> e.getKey().startsWith(prefix))
-                .map(e -> new AbstractMap.SimpleEntry<>(
-                        e.getKey().substring(prefix.length()),
-                        e.getValue()))
-                .collect(Collectors.toSet());
-    }
 
-    @Override
-    public String put(String key, String value)
-    {
-        String old = get(key);
-        this.put(key, value);
-        return old;
-    }
-
-    @Override
-    public String get(Object key)
-    {
-        if (key instanceof String)
-            return get((String) key);
-        return null;
-    }
 }

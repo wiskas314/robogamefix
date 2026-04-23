@@ -10,7 +10,7 @@ public class GameWindow extends JInternalFrame implements Stateful
 {
     public GameWindow(JComponent component)
     {
-        super("Игровое поле", true, true, true, true);
+        super(Localization.getInstance().getString("window.game"), true, true, true, true);
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(component, BorderLayout.CENTER);
         getContentPane().add(panel);

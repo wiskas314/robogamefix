@@ -86,6 +86,7 @@ public class MainApplicationFrame extends JFrame implements Stateful
         menuBar.add(createLookAndFeelMenu());
         menuBar.add(createTestMenu());
         menuBar.add(createExitMenu());
+        menuBar.add(createLanguageMenu());
         return menuBar;
     }
 
@@ -93,19 +94,19 @@ public class MainApplicationFrame extends JFrame implements Stateful
      * Создание кнопки отвечающие за схему
      */
     private JMenu createLookAndFeelMenu(){
-        JMenu lookAndFeelMenu = new JMenu("Режим отображения");
+        JMenu lookAndFeelMenu = new JMenu(Localization.getInstance().getString("menu.lookandfeel"));
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
                 "Управление режимом отображения приложения");
 
-        JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
+        JMenuItem systemLookAndFeel = new JMenuItem(Localization.getInstance().getString("menu.lookandfeel.system"), KeyEvent.VK_S);
         systemLookAndFeel.addActionListener((event) -> {
             setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             this.invalidate();
         });
         lookAndFeelMenu.add(systemLookAndFeel);
 
-        JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_S);
+        JMenuItem crossplatformLookAndFeel = new JMenuItem(Localization.getInstance().getString("menu.lookandfeel.cross"), KeyEvent.VK_S);
         crossplatformLookAndFeel.addActionListener((event) -> {
             setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             this.invalidate();
@@ -114,16 +115,43 @@ public class MainApplicationFrame extends JFrame implements Stateful
         return lookAndFeelMenu;
     }
 
+    private JMenu createLanguageMenu(){
+        JMenu languageMenu = new JMenu(Localization.getInstance().getString("language.menu"));
+        languageMenu.setMnemonic(KeyEvent.VK_L);
+
+        JMenuItem russianItem = new JMenuItem(Localization.getInstance().getString("language.russian"));
+        russianItem.addActionListener((event) -> {
+            Localization.getInstance().setLocaleFromTag("ru");
+            stateManager.save();
+            JOptionPane.showMessageDialog(this,
+                    Localization.getInstance().getString("message.restart"),
+                    "Info", JOptionPane.INFORMATION_MESSAGE);
+        });
+        languageMenu.add(russianItem);
+
+        JMenuItem englishItem = new JMenuItem(Localization.getInstance().getString("language.english"));
+        englishItem.addActionListener((event) -> {
+            Localization.getInstance().setLocaleFromTag("en");
+            stateManager.save();
+            JOptionPane.showMessageDialog(this,
+                    Localization.getInstance().getString("message.restart"),
+                    "Info", JOptionPane.INFORMATION_MESSAGE);
+        });
+        languageMenu.add(englishItem);
+
+        return languageMenu;
+    }
+
     /**
      * Создает меню отвечающие за тесты и логи
      */
     private JMenu createTestMenu(){
-        JMenu testMenu = new JMenu("Тесты");
+        JMenu testMenu = new JMenu(Localization.getInstance().getString("menu.tests"));
         testMenu.setMnemonic(KeyEvent.VK_T);
         testMenu.getAccessibleContext().setAccessibleDescription(
                 "Тестовые команды");
 
-        JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
+        JMenuItem addLogMessageItem = new JMenuItem(Localization.getInstance().getString("menu.tests.logmessage"), KeyEvent.VK_S);
         addLogMessageItem.addActionListener((event) -> {
             Logger.debug("Новая строка");
         });
@@ -136,10 +164,10 @@ public class MainApplicationFrame extends JFrame implements Stateful
      * Создает меню отвечающее за выход из игры
      */
     private JMenu createExitMenu(){
-        JMenu fileMenu = new JMenu("Выход");
+        JMenu fileMenu = new JMenu(Localization.getInstance().getString("menu.exit"));
         fileMenu.setMnemonic(KeyEvent.VK_F);
 
-        JMenuItem exitItem = new JMenuItem("Выход",KeyEvent.VK_X);
+        JMenuItem exitItem = new JMenuItem(Localization.getInstance().getString("menu.exit.item"),KeyEvent.VK_X);
         exitItem.setMnemonic(KeyEvent.VK_X);
         exitItem.addActionListener((event)->{
             Toolkit.getDefaultToolkit().getSystemEventQueue().

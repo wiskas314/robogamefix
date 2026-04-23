@@ -35,7 +35,7 @@ public class RobotCoordinatesWindow extends JInternalFrame
      * Создаёт новое окно координат робота
      */
     public RobotCoordinatesWindow(RobotModel model) {
-        super("Координаты робота", true, true, true, true);
+        super(Localization.getInstance().getString("window.coords"), true, true, true, true);
         this.model = model;
 
         model.addPropertyChangeListener(RobotModel.PROP_POSITION, this);
@@ -68,11 +68,12 @@ public class RobotCoordinatesWindow extends JInternalFrame
      * Обновляет отображаемые данные
      */
     private void updateDisplay() {
-        lblRobotX.setText(String.format("X: %.1f", model.getX()));
-        lblRobotY.setText(String.format("Y: %.1f", model.getY()));
+        Localization loc = Localization.getInstance();
+        lblRobotX.setText(loc.format("robot.x", model.getX()));
+        lblRobotY.setText(loc.format("robot.y", model.getY()));
         double deg = Math.toDegrees(model.getDirection());
-        lblDir.setText(String.format("Направление: %.1f°", deg));
-        lblTarget.setText(String.format("Цель: (%d, %d)", model.getTargetX(), model.getTargetY()));
+        lblDir.setText(loc.format("robot.direction", deg));
+        lblTarget.setText(loc.format("robot.target", model.getTargetX(), model.getTargetY()));
     }
 
     @Override
